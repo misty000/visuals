@@ -1,8 +1,7 @@
 (ns visuals.javafx.application
   "JavaFX Startup utilities"
-  (:import [javafx.application Platform Application])
   (:gen-class
-   :extends javafx.application.Application))
+    :extends javafx.application.Application))
 
 (defonce root-stage (promise))
 

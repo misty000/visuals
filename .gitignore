@@ -17,3 +17,6 @@
 
 /javafx/.lein-repl-history
 /javafx/.nrepl-port
+
+.idea
+*.iml

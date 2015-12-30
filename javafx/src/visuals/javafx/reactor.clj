@@ -2,11 +2,10 @@
   "JavaFX reactive implementations"
   (:require [reactor.core :as react]
             [visuals.core :as v]
-            [visuals.utils :refer :all])
-  (:import reactor.core.EventSource))
+            [visuals.utils :refer :all]))
 
 
-(defrecord PropertyBasedSignal [propname property clmap-atom updated-atom] 
+(defrecord PropertyBasedSignal [propname property clmap-atom updated-atom]
   reactor.core/Reactive
   (subscribe
     [sig follower f]
@@ -112,10 +111,10 @@
 (defn binding-spec
   "Creates a binding spec map from the given params."
   [component factory-fn key propname]
-  {:component component
+  {:component  component
    :factory-fn factory-fn
-   :key key
-   :propname propname})
+   :key        key
+   :propname   propname})
 
 
 (defn binding-specs
@@ -131,7 +130,7 @@
    A binding spec is a map with keys :component :factory-fn, :key and :propname."
   [binding-spec]
   (vector (:key binding-spec)
-                  ((:factory-fn binding-spec) binding-spec)))
+          ((:factory-fn binding-spec) binding-spec)))
 
 
 (defn make-reactive-map
@@ -148,8 +147,8 @@
 (defn prop-signal
   "Creates a signal for a property of a component."
   [{component :component key :key propname :propname}]
-  (let [prop (invoke component (str (first-lower propname) "Property"))] 
-      (PropertyBasedSignal. key prop (atom {}) (atom 0))))
+  (let [prop (invoke component (str (first-lower propname) "Property"))]
+    (PropertyBasedSignal. key prop (atom {}) (atom 0))))
 
 
 (defn list-signal

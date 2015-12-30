@@ -1,7 +1,7 @@
 (ns visuals.core
   "Visuals API"
   (:require [reactor.core :as r]
-            [reactor.execution]
+    ;[reactor.execution]
             [metam.core]
             [visuals.forml]
             [examine.core :as e]
@@ -38,8 +38,8 @@
 (defn run-now*
   [f]
   (let [result (promise)]
-    (run-later (deliver result 
-                        (try (f) 
+    (run-later (deliver result
+                        (try (f)
                              (catch Exception e (do (.printStackTrace e) e)))))
     @result))
 
@@ -49,9 +49,9 @@
   `(run-now* (fn [] ~@forms)))
 
 
-(def ui-thread (reify reactor.execution.Executor
-                 (schedule [_ f] (visuals.utils/run-later* (var-get #'toolkit) f))
-                 (cancel [_] false)))
+#_(def ui-thread (reify reactor.execution.Executor
+                   (schedule [_ f] (visuals.utils/run-later* (var-get #'toolkit) f))
+                   (cancel [_] false)))
 
 (defn build
   [spec]
@@ -188,8 +188,8 @@
 (defn to-components!
   "Merges the given data into the signals contained in comp-map."
   [mapping comp-map data]
-  (doseq [{format :formatter
-           data-path :data-path
+  (doseq [{format                 :formatter
+           data-path              :data-path
            [comp-path signal-key] :signal-path} mapping]
     (r/setv! (sigget comp-map comp-path signal-key)
              (->> data-path
@@ -207,8 +207,8 @@
   "Associates the values of the signals contained in comp-map into the given
   data map."
   [mapping comp-map data]
-  (let [sig-values (for [{parse :parser
-                          data-path :data-path
+  (let [sig-values (for [{parse                  :parser
+                          data-path              :data-path
                           [comp-path signal-key] :signal-path} mapping]
                      (vector (as-vector data-path)
                              (->> (sigget comp-map comp-path signal-key)
@@ -262,11 +262,11 @@
   missing in global view-signals map."
   [view-sig]
   (let [view-map (r/getv view-sig)
-        {vc ::vc
-         comp-map ::comp-map
+        {vc          ::vc
+         comp-map    ::comp-map
          domain-data ::domain-data
-         ui-state ::ui-state
-         all-views ::all-views} view-map]
+         ui-state    ::ui-state
+         all-views   ::all-views} view-map]
     (when all-views
       (close-missing-views! all-views)
       (start-new-views! all-views))
@@ -280,8 +280,8 @@
       (when-let [es (->> evt ::eventtarget (get @view-signals) r/getv ::eventsource)]
         (r/raise-event! es evt)))
     (update! view-sig
-             ::pending-events []
-             ::all-views nil)
+      ::pending-events []
+      ::all-views nil)
     view-sig))
 
 
@@ -310,7 +310,7 @@
   [view-sig f {evt :event}]
   (when f
     (dump (str "calling event-handler " f " for") (dissoc evt ::payload))
-    (try 
+    (try
       (let [view (-> view-sig update-from-view! r/getv)
             new-view ((deref-fn f) view evt)]
         (when (valid-view? new-view)
@@ -331,25 +331,25 @@
   If f-or-derefable is omitted it is lookup up with ::handler-fn 
   in view-sig."
   ([view-sig]
-     (install-handler! view-sig (-> view-sig r/getv ::handler-fn)))
+   (install-handler! view-sig (-> view-sig r/getv ::handler-fn)))
   ([view-sig f-or-derefable]
-     (let [events (all-events view-sig)
-           react-fn (fn react-fn [occ]
-                      (execute-event-handler! view-sig f-or-derefable occ))]
-       (update! view-sig
-                ::eventsource events
-                ::handler-fn f-or-derefable)
-       (r/subscribe events nil react-fn)
-       view-sig)))
+   (let [events (all-events view-sig)
+         react-fn (fn react-fn [occ]
+                    (execute-event-handler! view-sig f-or-derefable occ))]
+     (update! view-sig
+       ::eventsource events
+       ::handler-fn f-or-derefable)
+     (r/subscribe events nil react-fn)
+     view-sig)))
 
 
 (defn- components-with-invalid-data
   "Returns a set of all visual components that contain invalid data."
   [view-sig]
-  (let [{vrs ::validation-results
+  (let [{vrs      ::validation-results
          comp-map ::comp-map
-         mapping ::domain-data-mapping} (r/getv view-sig)
-         msgs (e/messages vrs)]
+         mapping  ::domain-data-mapping} (r/getv view-sig)
+        msgs (e/messages vrs)]
     (->> mapping
          (filter #(msgs (:data-path %)))
          (map #(cget comp-map (-> % :signal-path first)))
@@ -362,10 +362,10 @@
   [view-sig data-path]
   (update-from-view! view-sig)
   (let [{current-results ::validation-results
-         rule-set ::validation-rule-set
-         domain-data ::domain-data
-         comp-map ::comp-map} (r/getv view-sig)
-         new-results (e/validate (e/sub-set rule-set data-path) domain-data)]
+         rule-set        ::validation-rule-set
+         domain-data     ::domain-data
+         comp-map        ::comp-map} (r/getv view-sig)
+        new-results (e/validate (e/sub-set rule-set data-path) domain-data)]
     (update! view-sig ::validation-results (e/update current-results new-results))
     (let [invalid-vcs (components-with-invalid-data view-sig)]
       (doseq [[comp-path vc] comp-map]
@@ -376,9 +376,9 @@
 (defn- install-validation!
   "Registers a validation listener for all domain-data signals."
   [view-sig]
-  (let [{mapping ::domain-data-mapping
+  (let [{mapping  ::domain-data-mapping
          comp-map ::comp-map} (r/getv view-sig)]
-    (doseq [{data-path :data-path
+    (doseq [{data-path              :data-path
              [comp-path signal-key] :signal-path} mapping]
       (let [sig (sigget comp-map comp-path signal-key)]
         (->> sig (r/process-with (fn [v]
@@ -393,19 +393,19 @@
   (->> kvs
        (partition 2)
        (map vec)
-       (into {::spec spec ; model of the form
-              ::vc nil ; root component of the built visual component tree
-              ::comp-map {}   ; corresponding map of visual components
-              ::domain-data {}          ; business domain data
-              ::domain-data-mapping [] ; mapping between signals and business domain data
-              ::ui-state {} ; relevant components ui state (enabled, editable, visible and others)
-              ::ui-state-mapping [] ; mapping between signals and ui state data
-              ::handler-fn nil ; event handler function or a derefable containing fn
-              ::eventsource nil ; eventsource that merges all eventsources of the view
-              ::validation-rule-set {}  ; rule set for validation
-              ::validation-results {}   ; current validation results
-              ::pending-events []
-              ::all-views {}}))); a map from name of the root element of spec to the view  
+       (into {::spec                spec                    ; model of the form
+              ::vc                  nil                     ; root component of the built visual component tree
+              ::comp-map            {}                      ; corresponding map of visual components
+              ::domain-data         {}                      ; business domain data
+              ::domain-data-mapping []                      ; mapping between signals and business domain data
+              ::ui-state            {}                      ; relevant components ui state (enabled, editable, visible and others)
+              ::ui-state-mapping    []                      ; mapping between signals and ui state data
+              ::handler-fn          nil                     ; event handler function or a derefable containing fn
+              ::eventsource         nil                     ; eventsource that merges all eventsources of the view
+              ::validation-rule-set {}                      ; rule set for validation
+              ::validation-results  {}                      ; current validation results
+              ::pending-events      []
+              ::all-views           {}})))                  ; a map from name of the root element of spec to the view
 
 
 (defn view-signal
@@ -424,8 +424,8 @@
         vc (build spec)]
     (-> view-sig
         (update! ::vc vc
-                 ::comp-map (cmap vc)
-                 ::all-views (all-views))
+          ::comp-map (cmap vc)
+          ::all-views (all-views))
         install-handler!
         update-to-view!
         install-validation!)
@@ -443,9 +443,9 @@
 (defn event
   "Returns an event map from the given arguments."
   [sourcepath target payload]
-  {::sourcepath (as-vector sourcepath)
+  {::sourcepath  (as-vector sourcepath)
    ::eventtarget target
-   ::payload payload})
+   ::payload     payload})
 
 
 (defn event-matches?
@@ -460,10 +460,10 @@
 
 (def ^:private mapping-parser
   (p/some
-   (p/sequence :data-path (p/alternative (p/value keyword?) (p/value vector?))
-               :signal-path (p/value vector?)
-               :formatter (p/optval fn? identity)
-               :parser (p/optval fn? identity))))
+    (p/sequence :data-path (p/alternative (p/value keyword?) (p/value vector?))
+                :signal-path (p/value vector?)
+                :formatter (p/optval fn? identity)
+                :parser (p/optval fn? identity))))
 
 (defn mapping
   "Returns a sequence of mappings from data path to signal path,
@@ -494,10 +494,10 @@
   "Passes the view or the message to the view specified by to-view-spec-name
   by enqueuing an event into ::pending-events"
   ([view spec-name-of-target-view]
-     (pass-to view spec-name-of-target-view view))
+   (pass-to view spec-name-of-target-view view))
   ([view spec-name-of-target-view msg]
-     (update-in view [::pending-events]
-                conj (event (-> view ::spec :name) spec-name-of-target-view msg))))
+   (update-in view [::pending-events]
+              conj (event (-> view ::spec :name) spec-name-of-target-view msg))))
 
 ;; ----------------------------------------------------------------------------
 ;; Tools in the REPL

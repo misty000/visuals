@@ -9,28 +9,28 @@
             [examine.constraints :as c]))
 
 ;; Configure to use JavaFX toolkit
-
-(defonce toolkit (v/init-toolkit! (tk/->JfxToolkit)))
+(v/init-toolkit! (tk/->JfxToolkit))
+#_(defonce toolkit (v/init-toolkit! (tk/->JfxToolkit)))
 
 
 ;; In the REPL switch to this namespace and load it
 
 ;; Start the Addressbook
 #_(def master (-> (master-view) v/start-initial-view!))
-
-
+(-> (master-view)
+    v/start-initial-view!)
 
 ;; test data
 
 (def addresses
-  (atom [{:name "Donald Duck"
-          :street "Upperstr. 15"
+  (atom [{:name    "Donald Duck"
+          :street  "Upperstr. 15"
           :zipcode "4711"
-          :city "Duckberg"}
-         {:name "Mickey Mouse"
-          :street "Downstr. 42"
+          :city    "Duckberg"}
+         {:name    "Mickey Mouse"
+          :street  "Downstr. 42"
           :zipcode "4711"
-          :city "Duckberg"}]))
+          :city    "Duckberg"}]))
 
 
 
@@ -76,10 +76,10 @@
 
 (defn master-view []
   (v/view (f/window "Addressbook" :content master-panel)
-           ::v/domain-data-mapping (v/mapping :addresses ["Addresses" :items])
-           ::v/domain-data {:addresses @addresses}
-           ::v/ui-state-mapping (v/mapping :selected ["Addresses" :selected])
-           ::v/handler-fn #'master-handler))
+          ::v/domain-data-mapping (v/mapping :addresses ["Addresses" :items])
+          ::v/domain-data {:addresses @addresses}
+          ::v/ui-state-mapping (v/mapping :selected ["Addresses" :selected])
+          ::v/handler-fn #'master-handler))
 
 
 ;; Details form
@@ -117,11 +117,11 @@
                     :modality :window
                     :owner "Addressbook")
           ::v/domain-data-mapping
-          (v/mapping :name    ["Name" :text]
-                     :street  ["Street" :text]
+          (v/mapping :name ["Name" :text]
+                     :street ["Street" :text]
                      :zipcode ["Zipcode" :value]
-                     :city    ["City" :text]
-                     :age     ["Birthday" :text]  pf/format-date pf/parse-date)
+                     :city ["City" :text]
+                     :age ["Birthday" :text] pf/format-date pf/parse-date)
           ::v/domain-data
           address
           ::v/ui-state-mapping

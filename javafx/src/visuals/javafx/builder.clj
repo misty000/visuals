@@ -14,7 +14,7 @@
            [javafx.stage Stage Modality]
            [javafx.util Callback]
            [javafx.beans.property ReadOnlyObjectWrapper]
-           [visuals.javafx.reactor PropertyBasedSignal SelectionModelBasedSignal]
+           ;[visuals.javafx.reactor PropertyBasedSignal SelectionModelBasedSignal]
            [org.tbee.javafx.scene.layout MigPane]))
 
 
